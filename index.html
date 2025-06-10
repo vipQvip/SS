@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S🇮🇶S | Portfolio</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        /* ========================================
+         CSS (التنسيقات)
+         ========================================
+        */
+
+/* إعدادات عامة */
+    :root {
+        --primary-blue: #00BFFF; /* أزرق سماوي فاتح */
+        --dark-bg: #000000;
+        --card-bg: rgba(10, 10, 10, 0.75);
+        --text-color: #E0E0E0;
+        --text-secondary: #a0a0a0;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--dark-bg);
+        color: var(--text-color);
+        overflow: hidden; /* إخفاء شريط التمرير أثناء شاشة التحميل */
+        direction: ltr; /* نجعل الاتجاه من اليسار لليمين للمحتوى الانجليزي */
+    }
+
+    /* 1. شاشة التحميل الأولية */
+    #splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: var(--dark-bg);
+        display: flex; 
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        transition: opacity 0.7s ease-out;
+    }
+
+    #splash-screen img {
+        width: 150px;
+        height: 150px;
+        opacity: 0;
+        /* transform: scale(0.8); -- Initial transform will be set by JS for absolute positioning */
+        transition: opacity 1s ease-in, transform 1s ease-in; /* For initial pop-in */
+        position: absolute; /* Added for precise positioning and animation */
+    }
+
+    /* Classes for JS control */
+    #splash-screen.visible img { /* This class makes the image appear and scale to normal */
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1); /* Ensure it's centered and at final scale */
+    }
+
+    #splash-screen.hidden {
+        opacity: 0;
+    }
+
+    /* ===== START: Added CSS for image animation ===== */
+    #splash-screen img.animated-to-corner {
+        animation: spinAndMoveToCorner 1.4s ease-in-out forwards; /* Duration 1.4s, starts after 1s pop-in, ends at 2.4s */
+    }
+
+    @keyframes spinAndMoveToCorner {
+        0% {
+            /* Starts from the state set by #splash-screen.visible img */
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            opacity: 1;
+        }
+        50% {
+            /* Middle of animation: spinning, slightly smaller, still centered */
+            transform: translate(-50%, -50%) scale(0.9) rotate(360deg);
+            opacity: 1;
+        }
+        100% {
+            /* Final state: top-left corner, smaller, more rotation */
+            /* Moves the center of the image to 30px from top and 30px from left of viewport */
+            /* 75px is half of image width/height (150px/2) */
+            /* 30px is the desired margin from the corner */
+            transform: translate(calc(-50vw + 75px + 30px), calc(-50vh + 75px + 30px)) scale(0.5) rotate(720deg);
+            opacity: 1; /* Image stays visible, will fade out with splash-screen */
+        }
+    }
+    /* ===== END: Added CSS for image animation ===== */
+
+    /* ===== START: تعديل الصورة لتبقى ثابتة في الزاوية ===== */
+    #corner-logo {
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        width: 75px;
+        height: 75px;
+        z-index: 999;
+        transform: rotate(720deg) scale(0.5);
+        opacity: 0;
+        transition: opacity 0.5s ease-in;
+    }
+    
+    #corner-logo.visible {
+        opacity: 1;
+    }
+    /* ===== END: تعديل الصورة لتبقى ثابتة في الزاوية ===== */
+
+    /* ===== START: تأثيرات الضغط ===== */
+    .click-effect {
+        position: absolute;
+        border-radius: 50%;
+        background-color: rgba(0, 191, 255, 0.3);
+        pointer-events: none;
+        transform: translate(-50%, -50%) scale(0);
+        animation: clickEffect 0.8s ease-out forwards;
+    }
+    
+    @keyframes clickEffect {
+        0% {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(3);
+            opacity: 0;
+        }
+    }
+    /* ===== END: تأثيرات الضغط ===== */
+
+    /* 2. الواجهة الرئيسية والخلفية المتحركة */
+    #particles-js {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background-color: var(--dark-bg);
+        z-index: 1;
+    }
+
+    #main-content {
+        display: none; /* مخفي في البداية */
+        position: relative;
+        z-index: 2;
+        min-height: 100vh;
+        padding: 20px;
+        display: flex; 
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .main-card {
+        background: var(--card-bg);
+        padding: 30px 40px;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+        border: 1px solid rgba(0, 191, 255, 0.2);
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.1);
+        backdrop-filter: blur(5px);
+    }
+
+    /* 3. قسم معلومات المستخدم */
+    .main-card h1 {
+        color: var(--primary-blue);
+        font-size: 2.5rem;
+        margin-bottom: 5px;
+        text-shadow: 0 0 10px var(--primary-blue);
+    }
+
+    .main-card .subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 25px;
+    }
+
+    .skills-list {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    
+    /* معلومات شخصية إضافية */
+    .personal-info {
+        margin-top: 30px;
+        font-size: 1rem;
+        line-height: 1.8;
+        color: var(--text-color);
+    }
+
+    .personal-info span {
+        color: var(--primary-blue);
+        font-weight: bold;
+    }
+
+    /* 4. مشغل الموسيقى */
+    #play-music-btn {
+        background: var(--primary-blue);
+        color: var(--dark-bg);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        /* تم إخفاء هذا الزر لأن مشغل Spotify هو المستخدم الآن */
+        /* display: none; */ 
+    }
+    
+    #play-music-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 191, 255, 0.3);
+    }
+    
+    #play-music-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 8px rgba(0, 191, 255, 0.3);
+    }
+
+    .player-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+        /* تم إخفاء عناصر التحكم هذه لأن مشغل Spotify هو المستخدم الآن */
+        /* display: none; */
+    }
+
+    #mute-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    #mute-btn:hover {
+        color: var(--primary-blue);
+    }
+
+    /* شريط تقدم الأغنية */
+    .progress-container {
+        width: 100%;
+        background: #444;
+        height: 6px;
+        border-radius: 3px;
+        cursor: pointer;
+        margin-bottom: 10px;
+        /* تم إخفاء شريط التقدم هذا لأن مشغل Spotify هو المستخدم الآن */
+        /* display: none; */
+    }
+    
+    #progress-bar {
+        background: var(--primary-blue);
+        width: 0%;
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.1s linear;
+    }
+
+    .time-display {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        /* تم إخفاء عرض الوقت هذا لأن مشغل Spotify هو المستخدم الآن */
+        /* display: none; */
+    }
+
+    /* شريط التحكم بالصوت */
+    #volume-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100px;
+        height: 5px;
+        background: #444;
+        outline: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+
+    #volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 15px;
+        height: 15px;
+        background: var(--primary-blue);
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    
+    #volume-slider::-moz-range-thumb {
+        width: 15px;
+        height: 15px;
+        background: var(--primary-blue);
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    /* ===== START: Added style for Spotify player container ===== */
+    #spotify-player-container {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        width: 100%; /* Ensure it fits well in the card */
+        max-width: 450px; /* Spotify compact player width for aesthetic */
+        margin-left: auto;
+        margin-right: auto;
+    }
+    /* ===== END: Added style for Spotify player container ===== */
+
+
+    /* 5. أزرار التواصل الاجتماعي */
+    .social-links {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 25px;
+        z-index: 100;
+    }
+
+    .social-links a {
+        color: var(--text-secondary);
+        font-size: 1.8rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .social-links a:hover {
+        color: var(--primary-blue);
+        transform: translateY(-5px);
+    }
+    
+    /* تصميم متجاوب */
+    @media (max-width: 600px) {
+        .main-card {
+            padding: 25px 20px;
+            width: 95%;
+        }
+        .main-card h1 {
+            font-size: 2rem;
+        }
+        .skills-list {
+            font-size: 0.8rem;
+        }
+        .social-links a {
+            font-size: 1.5rem;
+        }
+        /* ===== START: Added responsive style for Spotify player container ===== */
+        #spotify-player-container {
+            max-width: 100%; /* يجعل المشغل يأخذ عرض الشاشة بالكامل على الأجهزة الصغيرة */
+        }
+        /* ===== END: Added responsive style for Spotify player container ===== */
+    }
+
+    /* تنسيق أيقونة التليجرام */
+    .telegram-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+    }
+    
+    .telegram-icon:hover {
+        color: var(--primary-blue);
+    }
+    
+    .telegram-icon svg {
+        fill: currentColor;
+    }
+    
+    .telegram-label {
+        margin-left: 5px;
+        font-size: 0.85em;
+    }
+
+</style>
+
+</head>
+<body>
+
+<div id="splash-screen">
+    <!-- تم تغيير مصدر الصورة هنا بناءً على طلبك -->
+    <img src="https://store-images.s-microsoft.com/image/apps.60257.14086977209274491.139199ed-b5de-413f-a081-140e72f0b00e.0ec7cc00-1768-4635-b706-fa05d5e73a41" alt="Loading Logo">
+</div>
+
+<!-- إضافة الشعار في الزاوية -->
+<img id="corner-logo" src="https://store-images.s-microsoft.com/image/apps.60257.14086977209274491.139199ed-b5de-413f-a081-140e72f0b00e.0ec7cc00-1768-4635-b706-fa05d5e73a41" alt="Logo">
+
+<div id="particles-js"></div>
+
+<main id="main-content">
+    <div class="main-card" data-aos="fade-up" data-aos-duration="1000">
+        <h1>S🇮🇶S</h1>
+        <p class="subtitle">Hy I am S🇮🇶S</p>
+
+        <div class="skills-list">
+            <p>Python - JavaScript - HTML - PHP</p>
+            <p>CSS - Lua - Java - Bash</p>
+            <p>C++ - C## - Ruby - Go - Kotlin</p>
+            <p>Rust - TypeScript - SQL - Swift</p>
+        </div>
+
+        <!-- ===== START: Original Music Player (elements hidden via inline style) ===== -->
+        <!-- ملاحظة: تم الإبقاء على عناصر المشغل الأصلي في HTML كما هو مطلوب، -->
+        <!-- ولكن تم إخفاؤها باستخدام style="display: none;" للسماح لمشغل Spotify بأن يكون مصدر الموسيقى الأساسي. -->
+        <!-- الشيفرة البرمجية الخاصة بها في JavaScript لا تزال موجودة ولكنها ستعمل على عناصر مخفية. -->
+        <button id="play-music-btn" style="display: none;">Play Music</button>
+        <div class="progress-container" id="progress-container" style="display: none;">
+            <div id="progress-bar"></div>
+        </div>
+        <div class="time-display" style="display: none;">
+            <span id="current-time">0:00</span>
+            <span id="duration">0:00</span>
+        </div>
+        <div class="player-controls" style="display: none;">
+            <button id="mute-btn">🔊</button>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+        </div>
+        <!-- تم الإبقاء على عنصر الصوت الأصلي ولكن تم مسح مصدره وإخفائه. -->
+        <audio id="audio-player" src="" style="display: none;"></audio>
+        <!-- ===== END: Original Music Player ===== -->
+
+        <!-- ===== START: Added Spotify Player ===== -->
+        <!-- يقوم هذا الـ iframe بتضمين مشغل Spotify للأغنية المطلوبة. -->
+        <!-- تمت إضافة theme=0 للـ URL الخاص بـ Spotify للحصول على مظهر داكن يتناسب مع الموقع. -->
+        <!-- تم تغيير ارتفاع المشغل إلى 80px لجعله أصغر بناءً على طلبك -->
+        <!-- تم حذف utm_source=generator من رابط Spotify بناءً على طلبك -->
+        <div id="spotify-player-container">
+            <iframe title="Spotify Embed: Way Down We Go by Kaleo" style="border-radius:12px;" src="https://open.spotify.com/embed/track/4Dq4iPYfuufX78FzumxvZL?theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+        <!-- ===== END: Added Spotify Player ===== -->
+
+        <div class="personal-info">
+            <p><span>Profession:</span> Python Developer & Bot Developer</p>
+            <p><span>Age:</span> 17</p>
+            <p><span>Country:</span> Iraq 🇮🇶</p>
+        </div>
+    </div>
+
+</main>
+
+<div class="social-links">
+    <!-- تم حذف رابط اليوتيوب بناء على طلبك -->
+    <a href="https://www.tiktok.com/@oekdjdjhddh" target="_blank" title="TikTok">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3zM1 11a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/>
+        </svg>
+    </a>
+    <a href="https://t.me/python_vipQvip" target="_blank" title="Telegram" class="telegram-icon">
+        <!-- تم تغيير SVG إلى أيقونة تيليجرام (طائرة ورقية) بناءً على طلبك -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M4.777 9.246l.577-2.19L13.13 5.435l-1.35 6.425-3.344-1.636-1.55 1.495-.132-.51zM5.53 8.24H5.53l5.053-2.61L6.46 9.42z"/>
+        </svg>
+        <span class="telegram-label">Telegram</span>
+    </a>
+</div>
+
+<!-- The original audio element's src was here, it is now part of the hidden player elements above. -->
+<!-- <audio id="audio-player" src="https://cdn.pixabay.com/download/audio/2022/10/18/audio_86377726b1.mp3"></audio> -->
+
+
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+/* ========================================
+ JavaScript (الوظائف التفاعلية)
+ ========================================
+*/
+window.addEventListener('load', () => {
+    const splashScreen = document.getElementById('splash-screen');
+    const splashImage = splashScreen.querySelector('img'); 
+    const mainContent = document.getElementById('main-content');
+    const cornerLogo = document.getElementById('corner-logo');
+
+    // ===== START: Added for splash image initial positioning =====
+    if (splashImage) {
+        // Set initial style for absolute positioning and scaling
+        splashImage.style.left = '50%';
+        splashImage.style.top = '50%';
+        // Start with the pre-visible transform (scaled down, centered)
+        splashImage.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        splashImage.style.opacity = '0'; // Ensure it starts transparent before class .visible applies
+    }
+    // ===== END: Added for splash image initial positioning =====
+
+    // Short delay to ensure initial styles are applied before transition starts
+    setTimeout(() => {
+        splashScreen.classList.add('visible'); // Image opacity/scale transition starts (1s duration for this part)
+    }, 50); 
+
+    // After the initial image appearance transition (1s from when .visible is added)
+    setTimeout(() => {
+        if (splashImage) {
+            splashImage.classList.add('animated-to-corner'); // Start spin and move to corner animation (1.4s duration)
+        }
+    }, 1050); // 50ms (initial delay) + 1000ms (pop-in animation)
+
+    setTimeout(() => {
+        splashScreen.classList.add('hidden'); 
+        
+        // بعد انتهاء انيميشن الشاشة المبدئية، نظهر الشعار الثابت في الزاوية
+        if (cornerLogo) {
+            cornerLogo.classList.add('visible');
+        }
+        
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+            mainContent.style.display = 'flex'; // Ensure main content uses flex as defined in CSS
+            document.body.style.overflow = 'auto';
+            AOS.init(); 
+        }, 700); 
+    }, 2500); 
+});
+
+// إضافة تأثير الضغط على أي مكان في الصفحة
+document.addEventListener('click', function(e) {
+    // إنشاء عنصر التأثير
+    const effect = document.createElement('div');
+    effect.className = 'click-effect';
+    
+    // تحديد موقع وحجم التأثير
+    effect.style.left = e.pageX + 'px';
+    effect.style.top = e.pageY + 'px';
+    effect.style.width = '10px';
+    effect.style.height = '10px';
+    
+    // إضافة التأثير للصفحة
+    document.body.appendChild(effect);
+    
+    // حذف التأثير بعد انتهاء الأنيميشن
+    setTimeout(() => {
+        effect.remove();
+    }, 800);
+    
+    // تأثير على جزيئات الخلفية عند الضغط
+    const particlesContainer = document.getElementById('particles-js');
+    if (particlesContainer && window.pJSDom && window.pJSDom[0]) {
+        const particles = window.pJSDom[0].pJS.particles;
+        
+        // تحريك الجزيئات بعيداً عن نقطة الضغط
+        for (let i = 0; i < particles.array.length; i++) {
+            const p = particles.array[i];
+            const dx = p.x - e.clientX;
+            const dy = p.y - e.clientY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 100) {
+                const force = 5 * (100 - distance) / 100;
+                const angle = Math.atan2(dy, dx);
+                p.vx = force * Math.cos(angle);
+                p.vy = force * Math.sin(angle);
+            }
+        }
+    }
+});
+
+particlesJS('particles-js', {
+    "particles": {"number": {"value": 80,"density": {"enable": true,"value_area": 800}},"color": {"value": "#00BFFF"},"shape": {"type": "circle",},"opacity": {"value": 0.5,"random": true,},"size": {"value": 3,"random": true,},"line_linked": {"enable": false,},"move": {"enable": true,"speed": 1,"direction": "none","random": true,"straight": false,"out_mode": "out","bounce": false,}},
+    "interactivity": {"detect_on": "canvas","events": {"onhover": {"enable": true,"mode": "repulse"},"onclick": {"enable": true,"mode": "push"},"resize": true},"modes": {"repulse": {"distance": 100,"duration": 0.4},"push": {"particles_nb": 4}}},
+    "retina_detect": true
+});
+
+// ===== START: Original Audio Player JavaScript =====
+// هذا الكود JavaScript خاص بمشغل الصوت الأصلي.
+// بما أن عناصر المشغل الأصلي مخفية الآن ومصدر الصوت فارغ
+// لاستخدام مشغل Spotify، فإن هذا الكود لن يكون فعالاً بشكل كبير
+// ولكنه تم الإبقاء عليه وفقًا لشرط عدم حذف أي كود.
+const audio = document.getElementById('audio-player'); 
+const playBtn = document.getElementById('play-music-btn');
+const muteBtn = document.getElementById('mute-btn');
+const volumeSlider = document.getElementById('volume-slider');
+const progressBar = document.getElementById('progress-bar');
+const progressContainer = document.getElementById('progress-container');
+const currentTimeEl = document.getElementById('current-time');
+const durationEl = document.getElementById('duration');
+let isPlaying = false;
+
+function formatTime(seconds) {
+    if (isNaN(seconds) || seconds === Infinity || !seconds) { 
+        return '0:00';
+    }
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+function togglePlay() {
+    if (!audio || !audio.src) { 
+        console.warn("Original audio player: No source or audio element not found.");
+        if(playBtn) playBtn.textContent = 'Play Music';
+        isPlaying = false;
+        return;
+    }
+    if (isPlaying) {
+        audio.pause();
+        if(playBtn) playBtn.textContent = 'Play Music';
+    } else {
+        audio.play().catch(error => console.warn("Original audio player: Playback failed.", error));
+        if(playBtn) playBtn.textContent = 'Pause Music';
+    }
+    isPlaying = !isPlaying;
+}
+
+function updateProgress() {
+    if (!audio || !audio.duration) { 
+        if(progressBar) progressBar.style.width = '0%';
+        if(durationEl) durationEl.textContent = formatTime(0);
+        if(currentTimeEl) currentTimeEl.textContent = formatTime(0);
+        return;
+    }
+    const { duration, currentTime } = audio;
+    const progressPercent = (currentTime / duration) * 100;
+    if(progressBar) progressBar.style.width = `${progressPercent}%`;
+    
+    if(durationEl) durationEl.textContent = formatTime(duration);
+    if(currentTimeEl) currentTimeEl.textContent = formatTime(currentTime);
+}
+
+function setProgress(e) {
+    if (!audio || !audio.duration || !this.clientWidth) return; 
+    const width = this.clientWidth;
+    const clickX = e.offsetX;
+    const duration = audio.duration;
+    audio.currentTime = (clickX / width) * duration;
+}
+
+function toggleMute() {
+    if (!audio) return;
+    audio.muted = !audio.muted;
+    if(muteBtn) muteBtn.textContent = audio.muted ? '🔇' : '🔊';
+}
+
+function setVolume() {
+    if (!audio) return;
+    audio.volume = volumeSlider.value;
+}
+
+if (playBtn) playBtn.addEventListener('click', togglePlay);
+if (muteBtn) muteBtn.addEventListener('click', toggleMute);
+if (volumeSlider) volumeSlider.addEventListener('input', setVolume);
+if (audio) {
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('ended', () => {
+        if(playBtn) playBtn.textContent = 'Play Music';
+        isPlaying = false;
+        if(progressBar) progressBar.style.width = '0%';
+        if(currentTimeEl) currentTimeEl.textContent = '0:00';
+    });
+    audio.addEventListener('loadedmetadata', updateProgress); 
+}
+if (progressContainer) progressContainer.addEventListener('click', setProgress);
+
+if (audio) { // Set initial time display for potentially empty/hidden audio player
+    updateProgress(); // Call it once to set initial values like 0:00 / 0:00
+}
+// ===== END: Original Audio Player JavaScript =====
+</script>
+</body>
+</html>
